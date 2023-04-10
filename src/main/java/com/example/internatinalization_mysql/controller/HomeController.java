@@ -1,34 +1,62 @@
 package com.example.internatinalization_mysql.controller;
-import com.example.internatinalization_mysql.entity.Language;
-import com.example.internatinalization_mysql.service.LanguageService;
+
+import com.example.internatinalization_mysql.dto.SurveyEnDto;
+import com.example.internatinalization_mysql.dto.SurveySwDto;
+import com.example.internatinalization_mysql.entity.Survey;
+import com.example.internatinalization_mysql.service.SurveyService;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
 public class HomeController {
 
+    @Autowired
+    private SurveyService surveyService;
 
-    private LanguageService languageService;
 
-    public HomeController(LanguageService languageService) {
-        this.languageService = languageService;
+    @GetMapping("get/all")
+    public List<Survey> getContentAll(){
+        return surveyService.getAllContent();
     }
 
-    @GetMapping("get/en")
-    public List<Language> getContentEn(){
-        return languageService.getEnContentByLanguage();
+    @GetMapping("/{id}/{lang}")
+    public ResponseEntity<Object> getById(@PathVariable Integer id, @PathVariable String lang){
+
+        Survey survey = surveyService.findById(id);
+        if(lang.equals("en")){
+            ModelMapper mapper = new ModelMapper();
+            SurveyEnDto surveyEnDto = mapper.map(survey, SurveyEnDto.class);
+            return ResponseEntity.ok(surveyEnDto);
+
+        } else if (lang.equals("sw")) {
+            ModelMapper mapper = new ModelMapper();
+            SurveySwDto surveySwDto = mapper.map(survey, SurveySwDto.class);
+            return ResponseEntity.ok(surveySwDto);
+
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found");
     }
 
-    @GetMapping("get/sw")
-    public List<Language> getContentSw(){
-        return languageService.getSwContentByLanguage();
+    @GetMapping("get/{email}")
+    public List<Survey> getByEmail(@PathVariable String email){
+        return surveyService.getContentByEmail(email);
     }
+    @GetMapping("id/{id}")
+    public Survey getAllById(@PathVariable Integer id){
+        return surveyService.getAllById(id);
+    }
+
 
     @PostMapping("post")
-    public Language postContent(@RequestBody Language language){
-        return languageService.saveData(language);
+    public Survey postContent(@RequestBody Survey survey){
+        return surveyService.saveData(survey);
     }
 }
 
